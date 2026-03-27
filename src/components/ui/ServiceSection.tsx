@@ -1,5 +1,5 @@
 import { Sparkles, Wrench, Scissors, Brush } from "lucide-react";
-import ServiceSection from "@/components/ui/ServiceCard";
+import ServiceCard from "@/components/ui/ServiceCard";
 
 const services = [
   {
@@ -62,7 +62,7 @@ export default function ServicesSection() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service) => (
-            <ServiceSection key={service.title} {...service} />
+            <ServiceCard key={service.title} {...service} />
           ))}
         </div>
       </div>

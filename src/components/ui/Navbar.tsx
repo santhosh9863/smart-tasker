@@ -1,13 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Menu, X, Zap } from "lucide-react";
 import Button from "@/components/ui/Button";
 
-// ─── THEME TOGGLE ─────────────────────────────────────────────────────────────
 const THEME: "dark" | "light" = "dark";
 
-// ─── THEME DEFINITIONS ────────────────────────────────────────────────────────
 const themes = {
   dark: {
     nav: "bg-zinc-950/90 border-b border-white/[0.06] backdrop-blur-xl",
@@ -38,12 +37,10 @@ const themes = {
   },
 } as const;
 
-// ─── NAV LINKS ────────────────────────────────────────────────────────────────
-// scrollTo: section id to scroll to (null = plain href navigation)
-const NAV_LINKS: { label: string; href: string; scrollTo?: string }[] = [
+const NAV_LINKS = [
   { label: "Services", href: "#services", scrollTo: "services" },
-  { label: "Pricing",  href: "#pricing" },
-  { label: "About",    href: "#about" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "About", href: "#about" },
 ];
 
 function smoothScroll(id: string) {
@@ -52,16 +49,17 @@ function smoothScroll(id: string) {
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter(); // ✅ FIXED HERE
   const t = themes[THEME];
 
   function handleNavClick(
     e: React.MouseEvent<HTMLAnchorElement>,
     scrollTo?: string
   ) {
-    if (!scrollTo) return; // let normal href handle it
+    if (!scrollTo) return;
     e.preventDefault();
     smoothScroll(scrollTo);
-    setMobileOpen(false); // close mobile menu on tap
+    setMobileOpen(false);
   }
 
   return (
@@ -69,7 +67,7 @@ export default function Navbar() {
       <nav className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
 
-          {/* ── Logo ── */}
+          {/* Logo */}
           <a href="/" className="flex items-center gap-2 shrink-0">
             <div className="flex items-center justify-center w-7 h-7 rounded-md bg-violet-600">
               <Zap size={14} className="text-white fill-white" />
@@ -79,7 +77,7 @@ export default function Navbar() {
             </span>
           </a>
 
-          {/* ── Center Links (desktop) ── */}
+          {/* Desktop Links */}
           <ul className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map(({ label, href, scrollTo }) => (
               <li key={label}>
@@ -94,10 +92,17 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* ── Right Actions (desktop) ── */}
+          {/* Desktop Right Actions */}
           <div className="hidden md:flex items-center gap-3">
             <div className={`h-4 w-px ${t.divider}`} />
-            <Button variant="outline">Log in</Button>
+
+            <Button
+              variant="outline"
+              onClick={() => router.push("/login")}
+            >
+              Log in
+            </Button>
+
             <Button
               variant="primary"
               onClick={() => smoothScroll("services")}
@@ -106,19 +111,17 @@ export default function Navbar() {
             </Button>
           </div>
 
-          {/* ── Hamburger (mobile) ── */}
+          {/* Mobile Hamburger */}
           <button
             className={`md:hidden p-1.5 rounded-md ${t.hamburger}`}
             onClick={() => setMobileOpen((prev) => !prev)}
-            aria-label="Toggle menu"
-            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </nav>
 
-      {/* ── Mobile Menu ── */}
+      {/* Mobile Menu */}
       {mobileOpen && (
         <div className={`md:hidden px-4 pb-5 ${t.mobileMenu}`}>
           <ul className="flex flex-col pt-1">
@@ -134,8 +137,18 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
+
           <div className={`flex flex-col gap-2.5 ${t.mobileDivider}`}>
-            <Button variant="outline">Log in</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                router.push("/login");
+                setMobileOpen(false);
+              }}
+            >
+              Log in
+            </Button>
+
             <Button
               variant="primary"
               onClick={() => {

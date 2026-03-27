@@ -1,18 +1,24 @@
+"use client";
 
 import { ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+
 interface ServiceCardProps {
   title: string;
   description: string;
   price: string;
   icon: ReactNode;
 }
+
 export default function ServiceCard({
   title,
   description,
   price,
   icon,
 }: ServiceCardProps) {
+  const router = useRouter();
+
   return (
     <div
       className={[
@@ -24,7 +30,7 @@ export default function ServiceCard({
         "cursor-default select-none",
       ].join(" ")}
     >
-      {/* Subtle top-edge glow on hover */}
+      {/* Top-edge glow on hover */}
       <div
         className={[
           "pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-xl",
@@ -62,7 +68,11 @@ export default function ServiceCard({
       <div className="h-px bg-white/5" />
 
       {/* CTA */}
-      <Button variant="primary" className="w-full">
+      <Button
+        variant="primary"
+        className="w-full"
+        onClick={() => router.push("/booking")}
+      >
         Book Now
       </Button>
     </div>
