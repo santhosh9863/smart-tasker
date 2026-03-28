@@ -1,9 +1,10 @@
-import "./globals.css";
+import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import "./globals.css";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "SmartTasker",
-  description: "Modern SaaS booking platform",
+  description: "Book services instantly without hassle",
 };
 
 export default function RootLayout({
