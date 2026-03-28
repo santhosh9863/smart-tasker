@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Menu, X, Zap } from "lucide-react";
 import Button from "@/components/ui/Button";
-
+import { UserButton, useUser } from "@clerk/nextjs";
 const THEME: "dark" | "light" = "dark";
 
 const themes = {
@@ -48,6 +48,7 @@ function smoothScroll(id: string) {
 }
 
 export default function Navbar() {
+  const { isSignedIn } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter(); // ✅ FIXED HERE
   const t = themes[THEME];
@@ -96,12 +97,16 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             <div className={`h-4 w-px ${t.divider}`} />
 
-            <Button
-              variant="outline"
-              onClick={() => router.push("/login")}
-            >
-              Log in
-            </Button>
+           {isSignedIn ? (
+  <UserButton />
+) : (
+  <Button
+    variant="outline"
+    onClick={() => router.push("/login")}
+  >
+    Log in
+  </Button>
+)}
 
             <Button
               variant="primary"

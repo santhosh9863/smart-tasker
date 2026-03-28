@@ -1,9 +1,18 @@
 "use client";
 
-import { useState, useRef, ChangeEvent, FormEvent } from "react";
+import { useState, useRef, ChangeEvent, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { createClient } from "@supabase/supabase-js";
+
 import Navbar from "@/components/ui/Navbar";
 import Button from "@/components/ui/Button";
+
+/* SUPABASE CLIENT */
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 interface FormData {
   name: string;
@@ -30,12 +39,21 @@ const INITIAL: FormData = {
 
 export default function BookingPage() {
   const router = useRouter();
+  const { isSignedIn, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push("/login");
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   const [form, setForm] = useState<FormData>(INITIAL);
   const [showToast, setShowToast] = useState(false);
   const [errorToast, setErrorToast] = useState(false);
   const [loading, setLoading] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  if (!isLoaded) return null;
 
   function handleChange(
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -46,7 +64,7 @@ export default function BookingPage() {
     }));
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const missing =
@@ -55,7 +73,6 @@ export default function BookingPage() {
       !form.service.trim() ||
       !form.date.trim();
 
-    // 🔴 ERROR TOAST
     if (missing) {
       setErrorToast(true);
       setTimeout(() => setErrorToast(false), 3000);
@@ -64,29 +81,41 @@ export default function BookingPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      console.log("INSIDE TIMEOUT");
-      console.log("Booking data:", form);
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .insert([
+          {
+            name: form.name,
+            email: form.email,
+            service: form.service,
+            date: form.date,
+          },
+        ]);
 
-      // 🔥 STOP LOADING FIRST
-      setLoading(false);
+      console.log("DATA:", data);
+      console.log("ERROR:", error);
 
-      // 🔥 SHOW SUCCESS
-      setShowToast(true);
+      if (error) {
+        setErrorToast(true);
+        setTimeout(() => setErrorToast(false), 3000);
+      } else {
+        setShowToast(true);
+        setForm(INITIAL);
 
-      // 🔥 RESET FORM
-      setForm(INITIAL);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
 
-      // 🔥 PREVENT MULTIPLE TIMERS
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          setShowToast(false);
+        }, 3000);
       }
-
-      // 🔥 AUTO HIDE TOAST
-      timeoutRef.current = setTimeout(() => {
-        setShowToast(false);
-      }, 3000);
-    }, 1200);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const inputClass =
@@ -160,7 +189,6 @@ export default function BookingPage() {
               />
             </div>
 
-            {/* 🔄 LOADING BUTTON */}
             <Button
               type="submit"
               disabled={loading}
@@ -172,17 +200,15 @@ export default function BookingPage() {
         </div>
       </main>
 
-      {/* 🟢 SUCCESS TOAST */}
       {showToast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-[9999]">
           Booking confirmed successfully 🚀
         </div>
       )}
 
-      {/* 🔴 ERROR TOAST */}
       {errorToast && (
-        <div className="fixed top-32 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in">
-          Please fill all fields ⚠️
+        <div className="fixed top-32 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-[9999]">
+          Something went wrong ⚠️
         </div>
       )}
     </>
